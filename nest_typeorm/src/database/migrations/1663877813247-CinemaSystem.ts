@@ -1,6 +1,12 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableForeignKey,
+} from 'typeorm';
 
 export class CinemaSystem1663877813247 implements MigrationInterface {
+  name = 'CinemaSystem1663877813247';
   /**
    # ToDo: Create a migration that creates all tables for the following user stories
 
@@ -31,7 +37,281 @@ export class CinemaSystem1663877813247 implements MigrationInterface {
    * As a cinema owner I dont want to configure the seating for every show
    */
   public async up(queryRunner: QueryRunner): Promise<void> {
-    throw new Error('TODO: implement migration in task 4');
+    /**
+     *
+     *
+     *  THIS SECTION IS FOR CREATING TABLES
+     *
+     *
+     */
+
+    /**
+     * User Table
+     *  NB - For the sake of simplicity administrator are diffentiated using isAdmin boolean field
+     */
+    await queryRunner.createTable(
+      new Table({
+        name: 'user',
+        columns: [
+          {
+            name: 'id',
+            type: 'integer',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'firstName', type: 'varchar' },
+          { name: 'lastName', type: 'varchar' },
+          { name: 'email', type: 'varchar' },
+          { name: 'password', type: 'varchar' },
+          { name: 'isAdmin', type: 'boolean' },
+          {
+            name: 'createdAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
+        ],
+      }),
+    );
+
+    /**
+     * Movie Table
+     */
+    await queryRunner.createTable(
+      new Table({
+        name: 'movie',
+        columns: [
+          {
+            name: 'id',
+            type: 'integer',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'title', type: 'varchar' },
+          { name: 'description', type: 'varchar' },
+          {
+            name: 'createdAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
+        ],
+      }),
+    );
+
+    /**
+     * Show Room Table
+     */
+    await queryRunner.createTable(
+      new Table({
+        name: 'show_room',
+        columns: [
+          {
+            name: 'id',
+            type: 'integer',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'name', type: 'varchar' },
+          { name: 'totalSeats', type: 'integer' },
+          { name: 'totalRemainingSeats', type: 'integer' },
+          {
+            name: 'createdAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
+        ],
+      }),
+    );
+
+    /**
+     * Seat Type Table
+     */
+    await queryRunner.createTable(
+      new Table({
+        name: 'seat_type',
+        columns: [
+          {
+            name: 'id',
+            type: 'integer',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'name', type: 'varchar' },
+          {
+            name: 'createdAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
+        ],
+      }),
+    );
+
+    /**
+     * Seating Table
+     */
+    await queryRunner.createTable(
+      new Table({
+        name: 'seating',
+        columns: [
+          {
+            name: 'id',
+            type: 'integer',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'code', type: 'varchar' },
+          { name: 'showRoomId', type: 'integer' },
+          { name: 'seatTypeId', type: 'integer' },
+          { name: 'addOnPrice', type: 'decimal' },
+          {
+            name: 'createdAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
+        ],
+      }),
+    );
+
+    /**
+     * Movie Session Table (Used for movie time and show for each show room)
+     */
+    await queryRunner.createTable(
+      new Table({
+        name: 'movie_session',
+        columns: [
+          {
+            name: 'id',
+            type: 'integer',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'movieId', type: 'integer' },
+          { name: 'showRoomId', type: 'integer' },
+          { name: 'time', type: 'timestamp' },
+          { name: 'price', type: 'decimal' },
+          {
+            name: 'createdAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
+        ],
+      }),
+    );
+
+    /**
+     * Booking Table
+     */
+    await queryRunner.createTable(
+      new Table({
+        name: 'booking',
+        columns: [
+          {
+            name: 'id',
+            type: 'integer',
+            isPrimary: true,
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'userId', type: 'integer' },
+          { name: 'movieSessionId', type: 'integer' },
+          { name: 'seatingId', type: 'integer' },
+          { name: 'totalPrice', type: 'decimal' },
+          {
+            name: 'createdAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
+        ],
+      }),
+    );
+
+    /**
+     *
+     *
+     *  THIS SECTION IS FOR CREATING FOREIGN KEY
+     *
+     *
+     */
+
+    /**
+     * Booking table foreign key
+     */
+
+    await queryRunner.createForeignKey(
+      'booking',
+      new TableForeignKey({
+        columnNames: ['userId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'user',
+      }),
+    );
+
+    await queryRunner.createForeignKey(
+      'booking',
+      new TableForeignKey({
+        columnNames: ['movieSessionId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'movie_session',
+      }),
+    );
+
+    await queryRunner.createForeignKey(
+      'booking',
+      new TableForeignKey({
+        columnNames: ['seatingId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'seating',
+      }),
+    );
+
+    /**
+     * Seating table foreign key
+     */
+
+    await queryRunner.createForeignKey(
+      'seating',
+      new TableForeignKey({
+        columnNames: ['showRoomId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'show_room',
+      }),
+    );
+
+    await queryRunner.createForeignKey(
+      'seating',
+      new TableForeignKey({
+        columnNames: ['seatTypeId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'seat_type',
+      }),
+    );
+
+    /**
+     * Movie Session foreign key
+     */
+
+    await queryRunner.createForeignKey(
+      'movie_session',
+      new TableForeignKey({
+        columnNames: ['movieId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'movie',
+      }),
+    );
+
+    await queryRunner.createForeignKey(
+      'movie_session',
+      new TableForeignKey({
+        columnNames: ['showRoomId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'show_room',
+      }),
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {}
